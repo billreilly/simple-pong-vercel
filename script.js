@@ -3,6 +3,8 @@ const ctx = canvas.getContext('2d');
 const playerScoreEl = document.getElementById('playerScore');
 const cpuScoreEl = document.getElementById('cpuScore');
 const restartBtn = document.getElementById('restartBtn');
+const upBtn = document.getElementById('upBtn');
+const downBtn = document.getElementById('downBtn');
 
 const state = {
   playerScore: 0,
@@ -10,6 +12,10 @@ const state = {
   winningScore: 7,
   gameOver: false,
   keys: new Set(),
+  touch: {
+    up: false,
+    down: false,
+  },
   player: {
     x: 24,
     y: canvas.height / 2 - 55,
@@ -59,10 +65,10 @@ function clampPaddles() {
 }
 
 function updatePlayer() {
-  if (state.keys.has('ArrowUp') || state.keys.has('w') || state.keys.has('W')) {
+  if (state.keys.has('ArrowUp') || state.keys.has('w') || state.keys.has('W') || state.touch.up) {
     state.player.y -= state.player.speed;
   }
-  if (state.keys.has('ArrowDown') || state.keys.has('s') || state.keys.has('S')) {
+  if (state.keys.has('ArrowDown') || state.keys.has('s') || state.keys.has('S') || state.touch.down) {
     state.player.y += state.player.speed;
   }
 }
@@ -186,9 +192,29 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+function bindTouchControl(button, direction) {
+  const start = (event) => {
+    event.preventDefault();
+    state.touch[direction] = true;
+  };
+  const end = (event) => {
+    event.preventDefault();
+    state.touch[direction] = false;
+  };
+
+  button.addEventListener('touchstart', start, { passive: false });
+  button.addEventListener('touchend', end, { passive: false });
+  button.addEventListener('touchcancel', end, { passive: false });
+  button.addEventListener('mousedown', start);
+  button.addEventListener('mouseup', end);
+  button.addEventListener('mouseleave', end);
+}
+
 window.addEventListener('keydown', (event) => state.keys.add(event.key));
 window.addEventListener('keyup', (event) => state.keys.delete(event.key));
 restartBtn.addEventListener('click', resetGame);
+bindTouchControl(upBtn, 'up');
+bindTouchControl(downBtn, 'down');
 
 resetGame();
 gameLoop();
